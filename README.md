@@ -1,0 +1,206 @@
+Wildfly: Mutual(two way) client SSL Authentication
+==================================================
+Author: Giriraj Sharma 
+Level: Intermediate
+Technologies: SSL, Wildfly
+Summary: Basic examples that demonstrates Mutual client SSL authentication in wildlfy.
+
+What is it?
+-----------
+
+These examples demonstrates the use of *Mutual client SSL authentication* in *JBoss Enterprise Application Platform 6* or *WildFly*.
+
+This quickstart shows how to to use wildfly to authenticate users using the mutual client ssl scheme.
+Before you run this example, you must create certificates and configure the server to use SSL and validate client certificates.
+
+
+System requirements
+-------------------
+
+All you need to build this project is Java 6.0 (Java SDK 1.6) or better, Maven 3.0 or better.
+
+The application this project produces is designed to be run on JBoss Enterprise Application Platform 6 or WildFly.
+
+
+Configure Maven
+---------------
+
+If you have not yet done so, you must [Configure Maven](http://www.jboss.org/jdf/quickstarts/jboss-as-quickstart/#configure_maven) before testing the quickstarts.
+
+
+Create the Client Certicates
+------------------------
+
+1.  Open a command line and navigate to the JBoss server `configuration` directory:
+
+        For Linux:   JBOSS_HOME/standalone/configuration
+        For Windows: JBOSS_HOME\standalone\configuration
+2. Create a certificate for your server using the following command:
+
+        keytool -genkey -alias server -keyalg RSA -keystore server.keystore -storepass change_it -validity 365
+
+   You'll be prompted for some additional information, such as your name, organizational unit, and location. Enter any values you prefer.
+3. Create the client certificate, which is used to authenticate against the server when accessing a resource through SSL.
+
+         keytool -genkey -alias client -keystore client.keystore -storepass change_it -validity 365 -keyalg RSA -keysize 2048 -storetype pkcs12 -dname "CN=client, OU=Org. Unit, O=Company, ST=NC, C=US"
+4. Export the client certificate and create a truststore by importing this certificate:
+
+        keytool -exportcert -keystore client.keystore  -storetype pkcs12 -storepass change_it -alias client -keypass change_it -file client.cer
+        keytool -import -file client.cer -alias client -keystore client.truststore
+5. The certificates and keystores are now properly configured.
+
+
+Configure the Server to Use SSL 
+--------------------------------
+
+Now that the certificates and keystores are properly configured, you must enable SSL in the server configuration.
+Check out openssl configuration to use available keystore and truststore filesand configure standalone.xml similar 
+to one present in wildfly configuration directory.
+
+### Configure the HTTPS Connector in the Web Subsystem by Running the JBoss CLI Script
+
+1. Start the JBoss Enterprise Application Platform 6 or WildFly Server by typing the following:
+
+        For Linux:  WILDFLY_HOME/bin/standalone.sh 
+        For Windows:  WILDFLY_HOME\bin\standalone.bat
+2. Open a new command line, navigate to the root directory of this quickstart, and run the following command, replacing WILDFLY_HOME with the path to your server:
+
+        JBOSS_HOME/bin/jboss-cli.sh --connect --file=configure-https.cli
+
+This script adds and configures the `https` connector to the `web` subsystem in the server configuration. You should see the following result when you run the script:
+
+        {"outcome" => "success"}
+        {"outcome" => "success"}
+        {"outcome" => "success"}
+
+This command reloads the server configuration before completion. You don`t need to manually stop/start the server to the configuration take effect.
+
+### Configure the HTTPS Connector in the Web Subsystem by Manually Editing the Server Configuration File
+
+1.  If it is running, stop the JBoss Enterprise Application Platform 6 or WildFly Server.
+2.  Backup the file: `JBOSS_HOME/standalone/configuration/standalone.xml`
+3.  Open the `JBOSS_HOME/standalone/configuration/standalone.xml` file in an editor and locate the subsystem `urn:jboss:domain:web`.
+4.  Add the following XML to the `web` subsystem:
+
+        <connector name="https" protocol="HTTP/1.1" scheme="https" socket-binding="https" enable-lookups="false" secure="true">
+            <ssl name="localhost-ssl" key-alias="server" password="change_it"
+                certificate-key-file="${jboss.server.config.dir}/server.keystore"
+                protocol="TLSv1"
+                verify-client="required"
+                ca-certificate-file="${jboss.server.config.dir}/client.truststore"/>
+        </connector>
+
+
+Test the Server SSL Configuration
+---------------------------------
+
+To test the SSL configuration, access: <https://localhost:8443>
+
+If it is configured correctly, you should be asked to trust the server certificate.
+
+
+Import the Certificate into Your Browser
+---------------------------------
+
+Before you access the application, you must import the *client.cer*, which holds the client certificate, into your browser.
+
+#### Import the Certificate into Google Chrome
+
+1. Click the Chrome menu icon (3 horizontal bars) in the upper right on the browser toolbar and choose 'Settings'. This takes you to <chrome://settings/>.
+2. At the bottom of the page, click on the 'Show advanced settings...' link.
+3. Find the section 'HTTPS/SSL' and click on the 'Manage certificates...' button.
+4. In the 'Certificate manager' dialog box, choose the 'Your Certificates' tab and click the 'Import' button.
+5. Navigate to the `WILDFLY_HOME/standalone/configuration/` directory and select the `client.keystore` file. You will be prompted to enter the  password: `change_it`.
+5. The certificate is now installed in the Google Chrome browser.
+
+#### Import the Certificate into Mozilla Firefox
+
+1. Click the 'Edit' menu item on the browser menu and choose 'Preferences'.
+2. A new window will open. Select the 'Advanced' icon and after that the 'Certificates' tab.
+3. On the 'Certificates' tab, mark the option 'Ask me every time' and click the 'View Certificates' button.
+4. A new window will open. Select the 'Your Certificates' tab and click the 'Import' button.
+5. Navigate to the `WILDFLY_HOME/standalone/configuration/` directory and select the `client.keystore` file. See the *Create the Client Certicates* section for more details.
+6. You will be prompted to enter the  password: `change_it`.
+7. The certificate is now installed in the Mozilla Firefox browser.
+
+
+Start JBoss Enterprise Application Platform 6 or WildFly with the Web Profile
+-------------------------
+
+1. Open a command line and navigate to the root of the JBoss server directory.
+2. The following shows the command line to start the server with the web profile:
+
+        For Linux:   JBOSS_HOME/bin/standalone.sh
+        For Windows: JBOSS_HOME\bin\standalone.bat
+
+ 
+Build and Deploy the Quickstart
+-------------------------
+
+_NOTE: The following build command assumes you have configured your Maven user settings. If you have not, you must include Maven setting arguments on the command line. See [Build and Deploy the Quickstarts](../README.md#build-and-deploy-the-quickstarts) for complete instructions and additional options._
+
+1. Make sure you have started the Wildfly Server as described above.
+2. Open a command line and navigate to the root directory of one of the quickstart.
+3. Type this command to build and deploy the archive:
+
+        For EAP 6:     mvn clean package jboss-as:deploy
+        For WildFly:   mvn -Pwildfly clean package wildfly:deploy
+
+4. This will deploy `target/helloworld*.war` to the running instance of the server.
+
+
+Access the application 
+---------------------
+
+The application will be running at the following URL: <https://localhost:8080/wildfly-helloworld*>.
+
+
+Undeploy the Archive
+--------------------
+
+1. Make sure you have started the JBoss Server as described above.
+2. Open a command line and navigate to the root directory of this quickstart.
+3. When you are finished testing, type this command to undeploy the archive:
+
+        For EAP 6:     mvn jboss-as:undeploy
+        For WildFly:   mvn -Pwildfly wildfly:undeploy
+
+
+Remove the SSL Configuration
+----------------------------
+
+You can remove the security domain configuration by running the  `remove-https.cli` script provided in the root directory of this quickstart or by manually restoring the back-up copy the configuration file. 
+
+### Remove the Security Domain Configuration by Running the JBoss CLI Script
+
+1. Start the JBoss Enterprise Application Platform 6 or WildFly Server by typing the following:
+
+        For Linux:    WILDFLY_HOME_SERVER_1/bin/standalone.sh
+        For Windows:  WILDFLY_HOME_SERVER_1\bin\standalone.bat
+2. Open a new command line, navigate to the root directory of this quickstart, and run the following command, replacing JBOSS_HOME with the path to your server:
+
+        WILDFLY_HOME/bin/jboss-cli.sh --connect --file=remove-https.cli 
+This script removes the `https` connector from the `web` subsystem in the server configuration. You should see the following result when you run the script:
+
+        {"outcome" => "success"}
+        {"outcome" => "success"}
+
+
+### Remove the Security Domain Configuration Manually
+1. If it is running, stop the JBoss Enterprise Application Platform 6 or WildFly Server.
+2. Replace the `WILDFLY_HOME/standalone/configuration/standalone.xml` file with the back-up copy of the file.
+
+
+Run the Quickstart in JBoss Developer Studio or Eclipse
+-------------------------------------
+You can also start the server and deploy the quickstarts from Eclipse using JBoss tools.
+
+
+Debug the Application
+------------------------------------
+
+If you want to debug the source code or look at the Javadocs of any library in the project, run either of the following commands to pull them into your local repository. The IDE should then detect them.
+
+        mvn dependency:sources
+        mvn dependency:resolve -Dclassifier=javadoc
+        
