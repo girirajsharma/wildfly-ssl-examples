@@ -54,8 +54,8 @@ Configure the Server to Use SSL
 --------------------------------
 
 Now that the certificates and keystores are properly configured, you must enable SSL in the server configuration.
-Check out openssl configuration to use available keystore and truststore filesand configure standalone.xml similar 
-to one present in wildfly configuration directory.
+Check out configuration/openssl to use available keystore and truststore files. To directly configure wildfly standalone.xml, replace it with
+configuration/wildfly/standalone.xml.
 
 ### Configure the HTTPS Connector in the Web Subsystem by Running the JBoss CLI Script
 
