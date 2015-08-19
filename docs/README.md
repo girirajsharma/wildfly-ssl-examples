@@ -21,7 +21,9 @@ In order to ask for a client ssl authentication, we have to setup wildlfy standa
             </server>
             <server name="default-server_secondary">
                 <http-listener name="default_secondary" socket-binding="http_secondary"/>
+                <!-- Update here -->
                 <https-listener name="https-listener_secondary" socket-binding="https_secondary" security-realm="MySecurityRealm_secondary" verify-client="REQUESTED"/>
+                <!----------------->
                 <host name="testfoo.com alias="testfoo.com">
                     <location name="/" handler="welcome-content"/>
                     <access-log pattern="common" directory="${jboss.server.log.dir}" prefix="access"/>
@@ -49,14 +51,18 @@ So add <authentication> in order to setup the truststore path (the <ssl> section
 
 		<security-realm name="MySecurityRealm_secondary">
                 <server-identities>
+                <!-- Update here -->
                     <ssl protocol="TLSv1">
                         <keystore path="sdi_keystore.jks" relative-to="jboss.server.config.dir" keystore-password="changeit" alias="testfoo.com" key-password="changeit"/>
                     </ssl>
+                <!-- Update here -->
                 </server-identities>
                 <authentication>
+                <!-- Update here -->
                     <truststore path="sdi_cacerts.jks" relative-to="jboss.server.config.dir" keystore-password="changeit"/>
                     <local default-user="$local"/>
                     <properties path="mgmt-users.properties" relative-to="jboss.server.config.dir"/>
+                <!-- Update here -->
                 </authentication>
 		</security-realm>
 
