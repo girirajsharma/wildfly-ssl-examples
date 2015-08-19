@@ -1,6 +1,9 @@
 
 Wildfly SSL Client Authentication
 ==================================
+Preface: This document is currently in raw state. It will be updated and refined to give an absolutely clear idea to secure war's using two way
+mutual ssl on wildfly.
+
 In order to ask for a client ssl authentication, we have to setup wildlfy standalone.xml, web.xml and jboss-web.xml in different section.
 
 
@@ -12,12 +15,8 @@ In order to ask for a client ssl authentication, we have to setup wildlfy standa
             <server name="default-server">
                 <http-listener name="default" socket-binding="http"/>
                 <https-listener name="https-listener" socket-binding="https" security-realm="MySecurityRealm"/>
-                <host name="default-host" alias="localhost">
-                    <location name="/" handler="welcome-content"/>
-                    <access-log pattern="common" directory="${jboss.server.log.dir}" prefix="access"/>
-                    <filter-ref name="server-header"/>
-                    <filter-ref name="x-powered-by-header"/>
-                </host>
+                ...
+                ...
             </server>
             <server name="default-server_secondary">
                 <http-listener name="default_secondary" socket-binding="http_secondary"/>
@@ -25,22 +24,12 @@ In order to ask for a client ssl authentication, we have to setup wildlfy standa
                 <https-listener name="https-listener_secondary" socket-binding="https_secondary" security-realm="MySecurityRealm_secondary" verify-client="REQUESTED"/>
                 <!----------------->
                 <host name="testfoo.com alias="testfoo.com">
-                    <location name="/" handler="welcome-content"/>
-                    <access-log pattern="common" directory="${jboss.server.log.dir}" prefix="access"/>
-                    <filter-ref name="server-header"/>
-                    <filter-ref name="x-powered-by-header"/>
+                    ...
+                    ...
                 </host>
             </server>
-            <servlet-container name="default" default-encoding="utf-8">
-                <jsp-config/>
-            </servlet-container>
-            <handlers>
-                <file name="welcome-content" path="${jboss.home.dir}/welcome-content"/>
-            </handlers>
-            <filters>
-                <response-header name="server-header" header-name="Server" header-value="WildFly/8"/>
-                <response-header name="x-powered-by-header" header-name="X-Powered-By" header-value="Undertow/1"/>
-            </filters>
+            ...
+            ...
 		</subsystem>
 
 
