@@ -5,7 +5,7 @@ Level: Intermediate
 Technologies: SSL, CDI, JAX-RS
 Summary: Demonstrates mutual client ssl authentication via the use of wildfly SSL, CDI 1.1 and JAX-RS 2.0
 Target Project: WildFly
-Source: <https://github.com/wildfly/quickstart/>
+Source: <https://github.com/girirajsharma/wildfly-ssl-examples/>
 
 What is it?
 -----------
