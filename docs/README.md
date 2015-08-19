@@ -10,27 +10,19 @@ In order to ask for a client ssl authentication, we have to setup wildlfy standa
 1) Update UNDERTOW: Set https listener so that ssl authentication could occur
 ------------------------------------------------------------------------------
 
-		<subsystem xmlns="urn:jboss:domain:undertow:1.1">
+        <subsystem xmlns="urn:jboss:domain:undertow:2.0">
             <buffer-cache name="default"/>
             <server name="default-server">
-                <http-listener name="default" socket-binding="http"/>
-                <https-listener name="https-listener" socket-binding="https" security-realm="MySecurityRealm"/>
-                ...
-                ...
-            </server>
-            <server name="default-server_secondary">
-                <http-listener name="default_secondary" socket-binding="http_secondary"/>
-                <!-- Update here -->
-                <https-listener name="https-listener_secondary" socket-binding="https_secondary" security-realm="MySecurityRealm_secondary" verify-client="REQUESTED"/>
-                <!----------------->
-                <host name="testfoo.com alias="testfoo.com">
+                <http-listener name="default" socket-binding="http" redirect-socket="https"/>
+                <https-listener name="ssl" socket-binding="https" security-realm="ManagementRealm" verify-client="REQUIRED"/>
+                <host name="default-host" alias="localhost">
                     ...
                     ...
                 </host>
             </server>
             ...
             ...
-		</subsystem>
+        </subsystem>
 
 
 2) Update https-listener security realm to enable ssl authentication
@@ -38,45 +30,50 @@ In order to ask for a client ssl authentication, we have to setup wildlfy standa
 
 So add <authentication> in order to setup the truststore path (the <ssl> section instead indicate the keystore for server certificate).
 
-		<security-realm name="MySecurityRealm_secondary">
-                <server-identities>
-                <!-- Update here -->
-                    <ssl protocol="TLSv1">
-                        <keystore path="sdi_keystore.jks" relative-to="jboss.server.config.dir" keystore-password="changeit" alias="testfoo.com" key-password="changeit"/>
-                    </ssl>
-                <!-- Update here -->
-                </server-identities>
-                <authentication>
-                <!-- Update here -->
-                    <truststore path="sdi_cacerts.jks" relative-to="jboss.server.config.dir" keystore-password="changeit"/>
-                    <local default-user="$local"/>
-                    <properties path="mgmt-users.properties" relative-to="jboss.server.config.dir"/>
-                <!-- Update here -->
-                </authentication>
-		</security-realm>
+		<security-realm name="ManagementRealm">
+            <server-identities>
+                <ssl>
+                    <keystore path="RootCA.keystore" relative-to="jboss.server.config.dir" keystore-password="keypassword" key-password="keypassword"/>
+                </ssl>
+            </server-identities>
+            <authentication>
+                <truststore path="RootCA.truststore" relative-to="jboss.server.config.dir" keystore-password="keypassword"/>
+                <local default-user="$local" skip-group-loading="true"/>
+                <properties path="mgmt-users.properties" relative-to="jboss.server.config.dir"/>
+            </authentication>
+            <authorization map-groups-to-roles="false">
+                <properties path="mgmt-groups.properties" relative-to="jboss.server.config.dir"/>
+            </authorization>
+        </security-realm>
 
 3) Define a security-domain using login module (certificateRoles login module)
 --------------------------------------------------------------------------------
 
 In order to link the war application with wildfly configuration, define a security-domain using login module (certificateRoles login module)
 
-		<security-domain name="sdi_webservice_client_cert_domain" cache-type="default">
+        <subsystem xmlns="urn:jboss:domain:security:1.2">
+            <security-domains>
+                <security-domain name="client_cert_domain" cache-type="default">
                     <authentication>
                         <login-module code="CertificateRoles" flag="required">
                             <module-option name="verifier" value="org.jboss.security.auth.certs.AnyCertVerifier"/>
-                            <module-option name="securityDomain" value="sdi_webservice_client_cert_domain"/>
+                            <module-option name="securityDomain" value="client_cert_domain"/>
                             <module-option name="rolesProperties" value="file:${jboss.server.config.dir}/app-roles.properties"/>
                         </login-module>
                     </authentication>
-                    <jsse keystore-password="changeit" keystore-url="file:${jboss.server.config.dir}/sdi_keystore.jks" truststore-password="changeit" truststore-url="file:${jboss.server.config.dir}/sdi_cacerts.jks" client-auth="true"/>
-		</security-domain>
+                    <jsse keystore-password="keypassword" keystore-url="file:${jboss.server.config.dir}/RootCA.keystore" truststore-password="keypassword" truststore-url="file:${jboss.server.config.dir}/RootCA.truststore" client-auth="true"/>
+                </security-domain>
+                ...
+                ...
+        </subsystem>
 
 Make also the app-roles.properities file with the format
 CERTIFICATE_DN=ROLE_NAME
 
 a sample app-roles.properties file:
 
-		/C=IN/ST=UP/L=Noida/O=JBoss/OU=Keycloak/CN=giriraj/emailAddress=server@gmail.com=SDI_USER
+		CN\=client,\ OU\=Keycloak,\ O\=JBoss,\ ST\=UP,\ C\=IN=JBossAdmin
+        admin=JBossAdmin
 
 You have to escape the = symbol and space with backslash like the example.
 
@@ -85,41 +82,33 @@ You have to escape the = symbol and space with backslash like the example.
 
 In the web.xml war setup the client-cert authentication type, the role, and set as realm name the security domain name
 
-		<?xml version="1.0" encoding="UTF-8"?>
-		<web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
-    		<session-config>
-        		<session-timeout>
-            		30
-        		</session-timeout>
-    		</session-config>
-    		<security-constraint>
-        	<display-name>Constraint1</display-name>
-        	<web-resource-collection>
-            	<web-resource-name>sdi</web-resource-name>
-            	<description/>
-            	<url-pattern>/*</url-pattern>
-        	</web-resource-collection>
-        	<auth-constraint>
-            	<description/>
-            	<role-name>SDI_USER</role-name>
-        	</auth-constraint>
-    		</security-constraint>
-    		<login-config>
-        		<auth-method>CLIENT-CERT</auth-method>
-        		<realm-name>sdi_webservice_client_cert_domain</realm-name>
-    		</login-config>
-    		<security-role>
-        	<description/>
-        	<role-name>SDI_USER</role-name>
-    		</security-role>
-		</web-app>
+        <security-constraint>
+            <display-name>Constraint1</display-name>
+            <web-resource-collection>
+                <web-resource-name>admin</web-resource-name>
+                <description/>
+                <url-pattern>/*</url-pattern>
+            </web-resource-collection>
+            <auth-constraint>
+                <description/>
+                <role-name>JBossAdmin</role-name>
+            </auth-constraint>
+        </security-constraint>
+        <login-config>
+            <auth-method>CLIENT-CERT</auth-method>
+            <realm-name>client_cert_domain</realm-name>
+        </login-config>
+        <security-role>
+            <description/>
+            <role-name>JBossAdmin</role-name>
+        </security-role>
 
 
 5) Update jboss-web.xml (wildfly deployment descriptor) to set the security domain used
 ---------------------------------------------------------------------------------------
 
-		<jboss-web>
-    		<server-instance>default-server_secondary</server-instance>      
-    		<virtual-host>testfoo.com</virtual-host>
-    		<security-domain>sdi_webservice_client_cert_domain</security-domain>
-		</jboss-web>
+        <jboss-web>
+            <server-instance>default-server</server-instance>      
+            <virtual-host>default-host</virtual-host>
+            <security-domain>client_cert_domain</security-domain>
+        </jboss-web>
