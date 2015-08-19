@@ -11,3 +11,5 @@ serverCert.p12    signed by RootCA
 client.p12        signed by RootCA
 
 client1.p12       signed by Server
+
+client_new.p12    signed by RootCA
