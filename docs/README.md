@@ -83,11 +83,10 @@ In order to link the war application with wildfly configuration, define a securi
 		</security-domain>
 
 Make also the app-roles.properities file with the format
-certificate DN=nome_ruolo
+CERTIFICATE_DN=ROLE_NAME
 
+a sample app-roles.properties file:
 
-# sample app-roles.properties file
-----------------------------------
 		/C=IN/ST=UP/L=Noida/O=JBoss/OU=Keycloak/CN=giriraj/emailAddress=server@gmail.com=SDI_USER
 
 You have to escape the = symbol and space with backslash like the example.
