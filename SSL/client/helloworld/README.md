@@ -12,7 +12,7 @@ What is it?
 
 This example demonstrates the use of *Mutual client SSL authentication*, *CDI 1.1* and *Servlet 3.1* in *JBoss WildFly*.
 
-Please enable wildfly ssl and mutual client ssl security domain before running this quickstart from given README [Getting Started Developing Applications Guide](https://github.com/girirajsharma/wildfly-ssl-examples/docs).
+Please enable wildfly ssl and mutual client ssl security domain before running this quickstart from given README [Getting Started Developing Applications Guide](https://github.com/girirajsharma/wildfly-ssl-examples/tree/master/docs).
 
 System requirements
 -------------------

@@ -12,7 +12,7 @@ What is it?
 
 This example provides a web application demonstrating basic usage of *Mutual client SSL authentication*, *CDI 1.1* and *JAX-RS 2.0* in *WildFly*.
 
-Please enable wildfly ssl and mutual client ssl authentication before running this quickstart from given README [Getting Started Developing Applications Guide](https://github.com/girirajsharma/wildfly-ssl-examples/docs).
+Please enable wildfly ssl and mutual client ssl authentication before running this quickstart from given README [Getting Started Developing Applications Guide](https://github.com/girirajsharma/wildfly-ssl-examples/tree/master/docs).
 The example can be deployed using Maven from the command line or from Eclipse using JBoss Tools.
 
 System requirements
